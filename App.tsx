@@ -1,55 +1,33 @@
-import React, { useState } from 'react';
-import { TouchableWithoutFeedback } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 
 import { Container, ContainerWrapper } from './src/shared/common/styles';
 import {
+  BoardBlock,
+  BoardContainer,
+  BoardText,
+  DifficultyContainer,
+  DifficultyLabel,
+  ResetLabel,
   ScoreContainer,
   ScoreFrame,
-  ScoreTitle,
   ScorePoints,
-  BoardBlock,
-  BoardText,
-  BoardContainer,
-  WinnerTitle,
+  ScoreTitle,
   WinnerPoints,
+  WinnerTitle,
 } from './src/features/board/styles';
 import apiZeroOne from './src/services/01api';
 import {
   convertArrayToString,
   convertStringToArray,
+  calcWinner,
 } from './src/shared/helpers';
-
-const calcWinner = (blocks: string[]) => {
-  const winningLines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-
-  for (let i = 0; i < winningLines.length; i++) {
-    const [a, b, c] = winningLines[i];
-
-    if (
-      blocks[a] !== ' ' &&
-      blocks[a] === blocks[b] &&
-      blocks[b] === blocks[c]
-    ) {
-      return blocks[a];
-    }
-  }
-
-  return null;
-};
 
 export default function App() {
   const [boardValues, setBoardValues] = useState(Array(9).fill(' '));
   const [xScore, setXScore] = useState(0);
   const [oScore, setOScore] = useState(0);
+  const [difficulty, setDifficulty] = useState('easy');
   const winner = calcWinner(boardValues);
 
   const sendCurrentBoardAsync = async ({
@@ -78,21 +56,39 @@ export default function App() {
     }
   };
 
-  const handlePress = (index: number) => {
-    const blocks = [...boardValues];
+  const handlePress = useCallback(
+    (index: number) => {
+      const blocks = [...boardValues];
 
-    if (blocks[index] !== ' ' || winner) {
-      return;
-    }
+      if (blocks[index] !== ' ' || winner) {
+        return;
+      }
 
-    blocks[index] = 'X';
-    setBoardValues(blocks);
+      blocks[index] = 'X';
+      setBoardValues(blocks);
 
-    if (!calcWinner(blocks) && blocks.includes(' ')) {
-      setXScore(xScore + 10);
-      sendCurrentBoardAsync({ boardAsArray: blocks, level: 'hard' });
-    }
-  };
+      if (!calcWinner(blocks) && blocks.includes(' ')) {
+        setXScore(xScore + 10);
+        sendCurrentBoardAsync({ boardAsArray: blocks, level: difficulty });
+      }
+    },
+    [difficulty, sendCurrentBoardAsync, setXScore, setBoardValues, calcWinner]
+  );
+
+  const handleSetDifficulty = useCallback(
+    (level: string) => () => {
+      if (!winner) {
+        setDifficulty(level);
+      }
+    },
+    [setDifficulty, winner]
+  );
+
+  const handleResetPress = useCallback(() => {
+    setBoardValues(Array(9).fill(' '));
+    setOScore(0);
+    setXScore(0);
+  }, [setBoardValues, setOScore, setXScore]);
 
   return (
     <Container>
@@ -127,6 +123,28 @@ export default function App() {
             );
           })}
         </BoardContainer>
+        <DifficultyContainer>
+          <TouchableOpacity onPress={handleSetDifficulty('easy')}>
+            <DifficultyLabel name="easy" selected={difficulty}>
+              Easy
+            </DifficultyLabel>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleSetDifficulty('medium')}>
+            <DifficultyLabel name="medium" selected={difficulty}>
+              Medium
+            </DifficultyLabel>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleSetDifficulty('hard')}>
+            <DifficultyLabel name="hard" selected={difficulty}>
+              Hard
+            </DifficultyLabel>
+          </TouchableOpacity>
+        </DifficultyContainer>
+        {winner && (
+          <TouchableOpacity onPress={handleResetPress}>
+            <ResetLabel>Reset Game</ResetLabel>
+          </TouchableOpacity>
+        )}
       </ContainerWrapper>
     </Container>
   );

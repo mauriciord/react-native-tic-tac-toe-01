@@ -3,6 +3,11 @@ import { calculateBordersByIndex } from '../../shared/helpers';
 
 import { BoardBlockProps } from './types';
 
+type DifficultyProps = {
+  selected: string;
+  name: string;
+};
+
 export const BoardContainer = styled.View`
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 6px;
@@ -64,4 +69,31 @@ export const WinnerTitle = styled(ScoreTitle)`
 `;
 export const WinnerPoints = styled(ScorePoints)`
   color: yellow;
+`;
+
+export const DifficultyContainer = styled.View`
+  flex-direction: row;
+  align-self: stretch;
+  justify-content: space-around;
+  align-items: center;
+  background-color: rgba(226, 192, 87, 0.9);
+  border-radius: 6px;
+  margin: 10px;
+  min-height: 30px;
+  padding: 15px;
+`;
+
+export const DifficultyLabel = styled.Text`
+  color: ${({ name, selected }: DifficultyProps) =>
+    name === selected ? 'white' : 'brown'};
+  font-size: 20px;
+  background-color: ${({ name, selected }: DifficultyProps) =>
+    name === selected ? 'brown' : 'transparent'};
+  padding: 5px;
+`;
+
+export const ResetLabel = styled.Text`
+  color: brown;
+  font-weight: bold;
+  font-size: 22px;
 `;
