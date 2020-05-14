@@ -19,6 +19,7 @@ import {
   convertArrayToString,
   convertStringToArray,
   calcWinner,
+  containsEmpty,
 } from './src/shared/helpers';
 import { DifficultyList } from './src/features/board';
 
@@ -26,6 +27,7 @@ export default function App() {
   const [boardValues, setBoardValues] = useState(Array(9).fill(' '));
   const [xScore, setXScore] = useState(0);
   const [oScore, setOScore] = useState(0);
+  const [xIsNext, setXIsNext] = useState(true);
   const [difficulty, setDifficulty] = useState('easy');
   const winner = calcWinner(boardValues);
 
@@ -48,6 +50,8 @@ export default function App() {
 
         setBoardValues(convertedResponse);
         setOScore(oScore + 10);
+        console.log('____setting xIsNext to true', xIsNext);
+        setXIsNext(true);
       }
     } catch (error) {
       console.error(error);
@@ -59,28 +63,39 @@ export default function App() {
     (index: number) => {
       const blocks = [...boardValues];
 
-      if (blocks[index] !== ' ' || winner) {
+      if (blocks[index] !== ' ' || winner || !xIsNext) {
         return;
       }
 
       blocks[index] = 'X';
       setBoardValues(blocks);
 
-      if (!calcWinner(blocks) && blocks.includes(' ')) {
+      if (!calcWinner(blocks) && containsEmpty(blocks)) {
         setXScore(xScore + 10);
+        // next turn
+        console.log('set xIsNext to false');
+        setXIsNext(false);
         sendCurrentBoardAsync({ boardAsArray: blocks, level: difficulty });
       }
     },
-    [difficulty, sendCurrentBoardAsync, setXScore, setBoardValues, calcWinner]
+    [
+      difficulty,
+      sendCurrentBoardAsync,
+      setXScore,
+      setBoardValues,
+      calcWinner,
+      setXIsNext,
+      winner,
+    ]
   );
 
   const handleSetDifficulty = useCallback(
     (level: string) => () => {
-      if (!winner) {
+      if (!winner && containsEmpty(boardValues)) {
         setDifficulty(level);
       }
     },
-    [setDifficulty, winner]
+    [setDifficulty, winner, boardValues]
   );
 
   const handleResetPress = useCallback(() => {
@@ -126,7 +141,7 @@ export default function App() {
           difficulty={difficulty}
           handleSetDifficulty={handleSetDifficulty}
         />
-        {winner && (
+        {(winner || !containsEmpty(boardValues)) && (
           <TouchableOpacity onPress={handleResetPress}>
             <ResetLabel>Reset Game</ResetLabel>
           </TouchableOpacity>
