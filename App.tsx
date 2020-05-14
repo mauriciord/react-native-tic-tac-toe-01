@@ -6,8 +6,6 @@ import {
   BoardBlock,
   BoardContainer,
   BoardText,
-  DifficultyContainer,
-  DifficultyLabel,
   ResetLabel,
   ScoreContainer,
   ScoreFrame,
@@ -22,6 +20,7 @@ import {
   convertStringToArray,
   calcWinner,
 } from './src/shared/helpers';
+import { DifficultyList } from './src/features/board';
 
 export default function App() {
   const [boardValues, setBoardValues] = useState(Array(9).fill(' '));
@@ -123,23 +122,10 @@ export default function App() {
             );
           })}
         </BoardContainer>
-        <DifficultyContainer>
-          <TouchableOpacity onPress={handleSetDifficulty('easy')}>
-            <DifficultyLabel name="easy" selected={difficulty}>
-              Easy
-            </DifficultyLabel>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleSetDifficulty('medium')}>
-            <DifficultyLabel name="medium" selected={difficulty}>
-              Medium
-            </DifficultyLabel>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleSetDifficulty('hard')}>
-            <DifficultyLabel name="hard" selected={difficulty}>
-              Hard
-            </DifficultyLabel>
-          </TouchableOpacity>
-        </DifficultyContainer>
+        <DifficultyList
+          difficulty={difficulty}
+          handleSetDifficulty={handleSetDifficulty}
+        />
         {winner && (
           <TouchableOpacity onPress={handleResetPress}>
             <ResetLabel>Reset Game</ResetLabel>
